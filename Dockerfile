@@ -1,10 +1,8 @@
-# Menggunakan Ubuntu 24.04 LTS sebagai basis
 FROM ubuntu:24.04
 
-# Menghindari interaksi saat instalasi paket
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Instalasi aplikasi inti penting
+# 1. Update & Instal Paket Utama
 RUN apt-get update && apt-get install -y \
     openssh-server \
     sudo \
@@ -17,15 +15,17 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Persiapan untuk direktori proses SSH
+# 2. Instal Cloudflared (Klien Terowongan Cloudflare) secara resmi
+RUN curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb \
+    && dpkg -i cloudflared.deb \
+    && rm cloudflared.deb
+
+# 3. Direktori proses SSH
 RUN mkdir -p /var/run/sshd
 
-# Salin script inisialisasi cerdas
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Ekspos port default SSH
 EXPOSE 22
 
-# Jalankan mesin inisialisasi
 ENTRYPOINT ["/entrypoint.sh"]
